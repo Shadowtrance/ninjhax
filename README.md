@@ -14,7 +14,7 @@ You can also find a detailed technical writeup about how ninjhax works here : ht
 First, you will need to satisfy some software dependencies :
 - armips (which can be found here : https://github.com/Kingcom/armips)
 - devkitArm (which can be found here : http://devkitpro.org/)
-- an old version of ctrulib, as the latest version will NOT work (this revision should do : https://github.com/smealum/ctrulib/tree/c4382042d633168019137580aaa5bef1eaa7d103 ; make sure you set your CTRULIB environment variable to point to this old version of ctrulib)
+- an old version of ctrulib, as the latest version will NOT work (this revision should do : https://github.com/smealum/ctrulib/tree/1d761afced965f365ceeb387139ba0273252ad01 ; make sure you set your CTRULIB environment variable to point to this old version of ctrulib)
 - python (3 is recommended, 2 will probably work)
 
 Secondly, you will need to procure files required for building the executable. These files are not my IP so I can not (and will not) distribute them. Note that none of the data from these files ends up in the final product, we only use them to generate patches with our own data. You will need all versions of spider/SKATER's oss.cro file (found in romfs) :
