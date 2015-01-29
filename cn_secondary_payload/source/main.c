@@ -7,11 +7,11 @@
 #include <ctr/APT.h>
 #include <ctr/FS.h>
 #include "text.h"
-#include "spider_hook_rop_bin.h"
-#include "spider_initial_rop_bin.h"
-#include "spider_thread0_rop_bin.h"
-#include "cn_bootloader_bin.h"
-#include "cn_save_initial_loader_bin.h"
+#include "../../spider_hook_rop/spider_hook_rop_bin.h"
+#include "../../spider_initial_rop/spider_initial_rop_bin.h"
+#include "../../spider_thread0_rop/spider_thread0_rop_bin.h"
+#include "../../cn_bootloader/cn_bootloader_bin.h"
+#include "../../cn_save_initial_loader/cn_save_initial_loader_bin.h"
 
 #include "../../build/constants.h"
 
@@ -392,7 +392,7 @@ void installerScreen(u32 size)
 			//write exploit map file
 			ret=FSUSER_OpenFile(fsuHandle, &fileHandle, saveArchive, FS_makePath(PATH_CHAR, "/edit/mslot0.map"), FS_OPEN_WRITE|FS_OPEN_CREATE, FS_ATTRIBUTE_NONE);
 			state++; if(ret)goto installEnd;
-			ret=FSFILE_Write(fileHandle, &totalWritten, 0x0, (u32*)cn_save_initial_loader_bin, cn_save_initial_loader_bin_size, 0x10001);
+			ret=FSFILE_Write(fileHandle, &totalWritten, 0x0, (u32*)cn_save_initial_loader_bin, cn_save_initial_loader_bin_len, 0x10001);
 			state++; if(ret)goto installEnd;
 			ret=FSFILE_Close(fileHandle);
 			state++; if(ret)goto installEnd;
@@ -495,7 +495,7 @@ int main(u32 size, char** argv)
 
 		{
 			memset((u8*)0x14100000, 0x00, 0x2000);
-			memcpy((u8*)0x14100000, spider_initial_rop_bin, spider_initial_rop_bin_size);
+			memcpy((u8*)0x14100000, spider_initial_rop_bin, spider_initial_rop_bin_len);
 			_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, (u32*)0x14100000, 0x1000);
 
 			doGspwn((u32*)0x14100000, (u32*)(SPIDER_INITIALROP_PADR+FIRM_LINEAROFFSET), 0x1000);
@@ -505,7 +505,7 @@ int main(u32 size, char** argv)
 
 		{
 			memset((u8*)0x14100000, 0x00, 0x2000);
-			memcpy((u8*)0x14100000, spider_thread0_rop_bin, spider_thread0_rop_bin_size);
+			memcpy((u8*)0x14100000, spider_thread0_rop_bin, spider_thread0_rop_bin_len);
 			_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, (u32*)0x14100000, 0x2000);
 
 			doGspwn((u32*)0x14100000, (u32*)(SPIDER_THREAD0ROP_PADR+FIRM_LINEAROFFSET), 0x2000);
@@ -592,7 +592,7 @@ int main(u32 size, char** argv)
 
 	drawTitleScreen("running exploit... 090%");
 	
-	memcpy((u8*)0x00100000, cn_bootloader_bin, cn_bootloader_bin_size);
+	memcpy((u8*)0x00100000, cn_bootloader_bin, cn_bootloader_bin_len);
 	
 	drawTitleScreen("running exploit... 095%");
 

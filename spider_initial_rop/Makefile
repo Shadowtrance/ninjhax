@@ -12,10 +12,10 @@ endif
 
 SCRIPTS = "../scripts"
 
-all: spider_initial_rop.bin
+all: spider_initial_rop_bin.h
 
 clean:
-	@rm -f spider_initial_rop.bin
+	@rm -f spider_initial_rop.bin spider_initial_rop_bin.h
 	@cd 2050 && make clean
 	@cd 3074 && make clean
 	@cd 4096 && make clean
@@ -26,3 +26,7 @@ spider_initial_rop.bin:
 	@cd $(SPIDERVERSION) && make
 	@cp $(SPIDERVERSION)/$@ ./
 	@python $(SCRIPTS)/obfuscator5000.py $@
+
+spider_initial_rop_bin.h: spider_initial_rop.bin
+	@xxd -i $< > $@
+	@sed -i '' 's/unsigned/const static unsigned/g' $@

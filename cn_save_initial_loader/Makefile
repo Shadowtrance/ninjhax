@@ -12,10 +12,10 @@ endif
 
 SCRIPTS = "../scripts"
 
-all: cn_save_initial_loader.bin
+all: cn_save_initial_loader_bin.h
 
 clean:
-	@rm -f cn_save_initial_loader.bin
+	@rm -f cn_save_initial_loader.bin cn_save_initial_loader_bin.h
 	@cd WEST && make clean
 	@cd JPN && make clean
 	@echo "all cleaned up !"
@@ -24,3 +24,7 @@ cn_save_initial_loader.bin:
 	@cd $(CNVERSION) && make
 	@cp $(CNVERSION)/$@ ./
 	@python $(SCRIPTS)/obfuscator5000.py $@
+
+cn_save_initial_loader_bin.h: cn_save_initial_loader.bin
+	@xxd -i $< > $@
+	@sed -i '' 's/unsigned/const static unsigned/g' $@
