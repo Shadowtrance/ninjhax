@@ -35,6 +35,14 @@ That done, building is very easy. Open a terminal, cd to the ninjhax directory, 
 
 There are a lot of firmware versions out there, so building them all may take a while (think 10~20 minutes).
 
+### Building Spiderninja
+
+Spiderninja is a port of the ninjhax 3DSX homebrew loader to the Spider hack, which works on old 3DS <= 9.2. To build Spiderninja, follow the directions above and make sure a ninjhax build is successful. Once that works:
+
+- To build Spiderninja for a single specific firmware version, use (replace "7.1.0-16E" with firmware version) : `python scripts/buildSpiderninja.py "7.1.0-16E"`
+
+Once it is built, the artifacts will be in the `html` directory. Rename the `.bin` file for your target FW version to `spiderninja.bin` and place that on the root of your SD card. Then host the `.html` file along with `frame.html` and visit it to trigger Spiderninja.
+
 ### Description of modules
 
 The ninjhax source code is divided into a number of different modules. Some names are fairly straightforward, others are not. Here's an individual description of each module (roughly in order of execution where applicable) :
@@ -42,6 +50,7 @@ The ninjhax source code is divided into a number of different modules. Some name
 - **cn_qr_initial_loader** : qr code that ROPs its way to gspwn, gets code exec, downloads cn_secondary_payload through HTTP and launches it
 - **cn_save_initial_loader** : modified savegame file that loads cn_secondary_payload from save and launches it
 - **cn_secondary_payload** : finishes cn cleanup, takes over spider with spider_initial_rop, then waits for it to return. subsequently sets up bootloader through HB command and uses it to launch hb_menu (boot.3dsx)
+- **sn_initial_loader** : Spider 9.x loader for ninjhax
 - **spider_hook_rop** : takes over spider thread5
 - **spider_initial_rop** : takes over spider thread0 from thread5
 - **spider_thread0_rop** : takes over ro with rohax and then jumps to spider_code
@@ -52,6 +61,7 @@ The ninjhax source code is divided into a number of different modules. Some name
 - **cn_bootloader** : calls HB command to load homebrew, then flushes/invalidates cache and jumps to app code
 - **firm_constants** : contains constants relevant to FIRM
 - **cn_constants** : contains constants relevant to cubic ninja
+- **sn_constants** : contains constants relevant to Spiderninja
 - **spider_constants** : contains constants relevant to spider/SKATER
 - **ro_constants** : contains constants relevant to ro
 - **scripts** : contains various scripts used in the build process
@@ -79,3 +89,4 @@ The scripts directory includes an executable used to generate a qr code from a b
  - Normmatt, ichfly — general help, testing 
  - case — javascript master 
  - lobo — webpage template 
+ - yifanlu - Spiderninja port
