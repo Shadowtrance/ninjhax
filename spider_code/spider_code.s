@@ -367,12 +367,21 @@ NUM_OTHER_HANDLES equ 8
 
 	; .word 0xEF000003 ; svc 0x03 (ExitProcess)
 
+		.if BUILD_SPIDERNINJA
+			ldr r2, =SN_LOADER_CODE_ADDR
+			ldr r2, [r2]
+			ldr r1, =SPIDER_ROHANDLE_ADR
+			ldr r1, [r1]
+			mov r0, #1 ; run secondary payload
+			bx r1
+		.else
 			inftest:
 				;sleep for a second
 				ldr r0, =0x3B9ACA00
 				ldr r1, =0x00000000
 				.word 0xEF00000A ; sleep
 				b inftest
+		.endif
 
 	; ldr pc, =0x00100000
 

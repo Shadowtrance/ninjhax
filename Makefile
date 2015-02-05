@@ -27,24 +27,44 @@ export FIRMVERSION
 export CNVERSION
 export ROVERSION
 export SPIDERVERSION
+export SPIDERNINJA
 
+ifeq ($(strip $(SPIDERNINJA)),)
 OUTNAME = $(FIRMVERSION)_$(CNVERSION)_$(SPIDERVERSION)_$(ROVERSION)
+USE_SPIDERNINJA = "no"
+BUILD_DEPS = q/$(OUTNAME).png p/$(OUTNAME).bin build/cn_save_initial_loader.bin
+else
+OUTNAME = $(FIRMVERSION)_$(SPIDERVERSION)_$(ROVERSION)
+USE_SPIDERNINJA = "yes"
+CNVERSION = WEST
+BUILD_DEPS = html/$(OUTNAME).html html/frame.html html/$(OUTNAME).bin
+endif
 
 SCRIPTS = "scripts"
 
-.PHONY: directories all build/constants firm_constants/constants.txt ro_constants/constants.txt spider_constants/constants.txt cn_constants/constants.txt cn_qr_initial_loader/cn_qr_initial_loader.bin.png cn_save_initial_loader/cn_save_initial_loader.bin cn_secondary_payload/cn_secondary_payload.bin cn_bootloader/cn_bootloader.bin spider_initial_rop/spider_initial_rop.bin spider_thread0_rop/spider_thread0_rop.bin oss_cro/out_oss.cro build/ro_initial_code.bin build/ro_initial_rop.bin build/spider_code.bin
+.PHONY: directories all
 
-all: directories build/constants q/$(OUTNAME).png p/$(OUTNAME).bin build/cn_save_initial_loader.bin
+all: directories build/constants $(BUILD_DEPS)
 directories:
 	@mkdir -p build && mkdir -p build/cro
 	@mkdir -p p
 	@mkdir -p q
+	@mkdir -p html
 
 q/$(OUTNAME).png: build/cn_qr_initial_loader.bin.png
 	@cp build/cn_qr_initial_loader.bin.png q/$(OUTNAME).png
 
 p/$(OUTNAME).bin: build/cn_secondary_payload.bin
 	@cp build/cn_secondary_payload.bin p/$(OUTNAME).bin
+
+html/$(OUTNAME).html: build/spiderninja.html
+	@cp build/spiderninja.html html/$(OUTNAME).html
+
+html/frame.html:
+	@cp sn_initial_loader/frame.html html/frame.html
+
+html/$(OUTNAME).bin: build/spiderninja.bin
+	@cp build/spiderninja.bin html/$(OUTNAME).bin
 
 firm_constants/constants.txt:
 	@cd firm_constants && make
@@ -54,9 +74,11 @@ spider_constants/constants.txt:
 	@cd spider_constants && make
 cn_constants/constants.txt:
 	@cd cn_constants && make
+sn_constants/constants.txt:
+	@cd sn_constants && make
 
-build/constants: firm_constants/constants.txt ro_constants/constants.txt spider_constants/constants.txt cn_constants/constants.txt
-	@python $(SCRIPTS)/makeHeaders.py $(FIRMVERSION) $(CNVERSION) $(SPIDERVERSION) $(ROVERSION) build/constants $^
+build/constants: firm_constants/constants.txt ro_constants/constants.txt spider_constants/constants.txt cn_constants/constants.txt sn_constants/constants.txt
+	@python $(SCRIPTS)/makeHeaders.py $(FIRMVERSION) $(CNVERSION) $(SPIDERVERSION) $(ROVERSION) $(USE_SPIDERNINJA) build/constants $^
 
 build/cn_qr_initial_loader.bin.png: cn_qr_initial_loader/cn_qr_initial_loader.bin.png
 	@cp cn_qr_initial_loader/cn_qr_initial_loader.bin.png build
@@ -136,6 +158,16 @@ build/spider_code.bin: spider_code/spider_code.bin
 spider_code/spider_code.bin:
 	@cd spider_code && make
 
+build/spiderninja.html: sn_initial_loader/spiderninja.html
+	@cp sn_initial_loader/spiderninja.html build
+sn_initial_loader/spiderninja.html:
+	@cd sn_initial_loader && make spiderninja.html
+
+build/spiderninja.bin: sn_initial_loader/spiderninja.bin
+	@cp sn_initial_loader/spiderninja.bin build
+sn_initial_loader/spiderninja.bin: build/spider_thread0_rop.bin build/cn_bootloader.bin
+	@cd sn_initial_loader && make spiderninja.bin
+
 
 clean:
 	@rm -rf build/*
@@ -155,4 +187,6 @@ clean:
 	@cd spider_hook_rop && make clean
 	@cd spider_initial_rop && make clean
 	@cd spider_thread0_rop && make clean
+	@cd sn_constants && make clean
+	@cd sn_initial_loader && make clean
 	@echo "all cleaned up !"

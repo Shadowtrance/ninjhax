@@ -53,7 +53,7 @@ thread0rop:
 			.word 0xDEADC0DE ; r8 (garbage)
 			.word 0xDEADC0DE ; r9 (garbage)
 
-		;copy piece that'll have to be patched
+		;copy piece thatll have to be patched
 			.word 0x0010b5b4 ; pop {r0, r1, r2, r3, r4, pc}
 				.word SPIDER_GSPHEAPBUF ; r0 (dst)
 				.word SPIDER_CRRLOCATION+0x360 ; r1 (src)

@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<script>
+			var nb = 0;
+			function b() {
+				if (++nb == 1) {
+					p.addEventListener('DOMSubtreeModified', parent.a, false);
+				} else if (nb == 2) {
+					p.removeChild(f);
+				}
+			}
+			
+			function a() {
+				f = window.frameElement;
+				p = f.parentNode;
+				var o = document.createElement("object");
+				o.addEventListener('beforeload', b, false);
+				document.body.appendChild(o);
+			}
+
+			window.onload = a;
+		</script>
+	</head>
+	<body>
+		KEKEKEKEK...
+	</body>
+</html>
