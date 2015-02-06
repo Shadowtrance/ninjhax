@@ -7,6 +7,6 @@
     ("SN_GSPGPU_FlushDataCache_ADR", "0x0012C1E0"),
     ("SN_nn__gxlow__CTR__CmdReqQueueTx__TryEnqueue", "0x0012BF04"),
     ("SN_GSPSHAREDBUF_ADR", "(0x3D7C40+0x58)"),
-    ("SN_TOPFBTEMP", "(0x18410000)"),
-    ("SN_FREEZE_APP", "(0x08000838)")
+    ("SN_TOPFBTEMP", "0x18600000"),
+    ("SN_FREEZE_APP", "0x08000838")
 ]

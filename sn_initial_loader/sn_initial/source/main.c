@@ -13,7 +13,6 @@
 
 #define SCREEN_TOP_LEFT_1 0x1F1E6000
 #define SCREEN_TOP_LEFT_2 0x1F22C800
-#define TOPFBTEMP ((u8*)SN_TOPFBTEMP)
 
 const int dead_data[] = {0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0};
 
@@ -71,10 +70,9 @@ void renderString(char* str, int x, int y)
 	Handle* gspHandle=(Handle*)SPIDER_GSPHANDLE_ADR;
 	Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u8* addr, u32 size)=(void*)SN_GSPGPU_FlushDataCache_ADR;
 	drawString(SN_TOPFBTEMP,str,x,y);
+	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SN_TOPFBTEMP, 240*400*3);
 	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
 	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SCREEN_TOP_LEFT_1, 240*400*3);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SCREEN_TOP_LEFT_2, 240*400*3);
 }
 
 void centerString(char* str, int y)
@@ -83,10 +81,9 @@ void centerString(char* str, int y)
 	Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u8* addr, u32 size)=(void*)SN_GSPGPU_FlushDataCache_ADR;
 	int x=200-(_strlen(str)*4);
 	drawString(SN_TOPFBTEMP,str,x,y);
+	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SN_TOPFBTEMP, 240*400*3);
 	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
 	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SCREEN_TOP_LEFT_1, 240*400*3);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SCREEN_TOP_LEFT_2, 240*400*3);
 }
 
 void drawHex(u32 val, int x, int y)
@@ -168,11 +165,10 @@ void clearScreen(u8 shade)
 {
 	Handle* gspHandle=(Handle*)SPIDER_GSPHANDLE_ADR;
 	Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u8* addr, u32 size)=(void*)SN_GSPGPU_FlushDataCache_ADR;
-	memset(SN_TOPFBTEMP, shade, 240*400*3);
+	memset(SN_TOPFBTEMP, 0, 240*400*3);
+	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SN_TOPFBTEMP, 240*400*3);
 	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
 	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SCREEN_TOP_LEFT_1, 240*400*3);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SCREEN_TOP_LEFT_2, 240*400*3);
 }
 
 void errorScreen(char* str, u32* dv, u8 n)
@@ -205,6 +201,7 @@ void drawTitleScreen(char* str)
 
 int main_initial(void)
 {
+	u32 out;
 	*(int*)SN_FREEZE_APP = dead_data;
     svc_sleepThread(0x400000LL);
     svc_sleepThread(0x400000LL);
