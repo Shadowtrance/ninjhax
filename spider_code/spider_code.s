@@ -8,7 +8,6 @@ NUM_OTHER_HANDLES equ 8
 
 ;spider code
 .arm
-
 	; ;closeThread text spray
 	; ldr r0, =0xEF000009 ; svc 0x09 (ExitThread)
 	; ldr r1, =0x00100000
@@ -256,7 +255,7 @@ NUM_OTHER_HANDLES equ 8
 				add r4, #0xC
 				cmp r4, NUM_OTHER_HANDLES*0xC
 				blt otherHandleLoop
-
+	.if !BUILD_SPIDERNINJA
 		;srv:GetServiceHandle("APT:U")
 			mrc p15, 0, r8, c13, c0, 3
 			add r8, #0x80
@@ -317,15 +316,16 @@ NUM_OTHER_HANDLES equ 8
 			ldr r0, [sp, #8]
 			.word 0xEF000023 ; svc 0x23 (CloseHandle)
 
+		;close handle (ldr:ro)
+			ldr r0, [sp, #4]
+			.word 0xEF000023 ; svc 0x23 (CloseHandle)
+	.endif
+
 		;close handle (csnd:SND)
 			ldr r0, [sp, #0x10]
 
 		;close handle (fs:USER)
 			ldr r0, [sp, #0xC]
-			.word 0xEF000023 ; svc 0x23 (CloseHandle)
-
-		;close handle (ldr:ro)
-			ldr r0, [sp, #4]
 			.word 0xEF000023 ; svc 0x23 (CloseHandle)
 
 		;close handle (srv:)
@@ -369,11 +369,10 @@ NUM_OTHER_HANDLES equ 8
 
 		.if BUILD_SPIDERNINJA
 			ldr r2, =SN_LOADER_CODE_ADDR
-			ldr r2, [r2]
 			ldr r1, =SPIDER_ROHANDLE_ADR
 			ldr r1, [r1]
 			mov r0, #1 ; run secondary payload
-			bx r1
+			bx r2
 		.else
 			inftest:
 				;sleep for a second

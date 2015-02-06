@@ -8,5 +8,11 @@
     ("SN_nn__gxlow__CTR__CmdReqQueueTx__TryEnqueue", "0x0012BF04"),
     ("SN_GSPSHAREDBUF_ADR", "(0x3D7C40+0x58)"),
     ("SN_TOPFBTEMP", "0x18600000"),
-    ("SN_FREEZE_APP", "0x08000838")
+    ("SN_FREEZE_APP", "0x08000838"),
+    ("SN_ROHANDLE_ADR", "0x003D8FDC"),
+    ("SN_CRS_MAP_ADR", "0x003D8CF8"),
+    ("SN_TOTALPAGES", "0x262"),
+    ("SN_ADDPAGES", "0x0"),
+    ("SN_NEWTOTALPAGES", "(SN_TOTALPAGES+SN_ADDPAGES)"),
+    ("SN_ALLOCPAGES_ADR", "0x138F0000")
 ]

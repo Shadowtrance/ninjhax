@@ -138,7 +138,7 @@ thread0rop:
 
 		;flush data cache
 			.word 0x0010b5b4 ; pop {r0, r1, r2, r3, r4, pc}
-				.word 0x003DA72C ; r0 (handle ptr)
+				.word SPIDER_GSPHANDLE_ADR ; r0 (handle ptr)
 				.word 0xFFFF8001 ; r1 (kprocess handle)
 				.word SPIDER_GSPHEAPBUF  ; r2 (address)
 				.word 0x00000200 ; r3 (size)
