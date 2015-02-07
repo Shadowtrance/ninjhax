@@ -253,7 +253,7 @@ int main_secondary(Handle hbHandle)
 	// //allocate some memory for the bootloader code (will be remapped)
 	// u32 out; ret=svc_controlMemory(&out, 0x13FF0000, 0x00000000, 0x00008000, MEMOP_COMMIT, 0x3);
 	//allocate some memory for homebrew .text/rodata/data/bss... (will be remapped)
-	u32 out; ret=svc_controlMemory(&out, SN_ALLOCPAGES_ADR, 0x00000000, SN_ADDPAGES*0x1000, MEMOP_COMMIT, 0x3);
+	u32 out; ret=svc_controlMemory(&out, SN_ALLOCPAGES_ADR, 0x00000000, CN_ADDPAGES*0x1000, MEMOP_COMMIT, 0x3);
 
 	drawTitleScreen("running exploit... 060%");
 
@@ -262,6 +262,7 @@ int main_secondary(Handle hbHandle)
 	drawTitleScreen("running exploit... 070%");
 
 	// cleanup
+	if (0)
 	{
 		// cleanup by forcing all threads to close
 		unsigned int addr = 0x00100000;

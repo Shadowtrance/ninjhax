@@ -17,6 +17,12 @@
 #define RELOCBUFSIZE 512
 #define SEC_ASSERT(x) if(!(x)) return 0x5ECDEAD
 
+#if BUILD_SPIDERNINJA
+#define NEWTOTALPAGES SN_NEWTOTALPAGES
+#else
+#define NEWTOTALPAGES CN_NEWTOTALPAGES
+#endif
+
 int hasExtraHeap = 0;
 u32 extraHeapAddr = 0;
 u32 extraHeapPages = 0;
@@ -88,7 +94,7 @@ int Load3DSX(Handle file, Handle process, void* baseAddr, u32 heapAddr)
 		return -5;
 
 	u32 i, j, k, m;
-	u32 endAddr = 0x00100000+CN_NEWTOTALPAGES*0x1000;
+	u32 endAddr = 0x00100000+NEWTOTALPAGES*0x1000;
 
 	SEC_ASSERT(baseAddr >= (void*)0x00100000);
 	SEC_ASSERT((((u32) baseAddr) & 0xFFF) == 0); // page alignment
@@ -268,7 +274,7 @@ Result PrepareDeallocateExtraHeap(u32* heapAddrOut, u32* heapPagesOut)
 		return 0;
 	}
 
-	u32 endAddr = 0x00100000+CN_NEWTOTALPAGES*0x1000;
+	u32 endAddr = 0x00100000+NEWTOTALPAGES*0x1000;
 
 	// Unmap extended pages.
 	u32 i;

@@ -12,6 +12,14 @@
 
 #define NUM_CMD (9)
 
+#if BUILD_SPIDERNINJA
+#define NEWTOTALPAGES SN_NEWTOTALPAGES
+#define TOTALPAGES SPIDER_TOTAL_PAGES
+#else
+#define NEWTOTALPAGES CN_NEWTOTALPAGES
+#define TOTALPAGES CN_TOTALPAGES
+#endif
+
 int* numSessionHandles=(int*)RO_SESSIONHANDLECNT_ADR;
 Handle* sessionHandles=(Handle*)RO_SESSIONHANDLES_ADR;
 
@@ -74,7 +82,7 @@ void HB_SetupBootloader(u32* cmdbuf)
 	int i;
 	for(i=0;i<CN_ADDPAGES;i++)
 	{
-		Result ret=svc_controlProcessMemory(processHandle, 0x00100000+(CN_TOTALPAGES+i)*0x1000, CN_ALLOCPAGES_ADR+0x1000*i, 0x1000, MEMOP_MAP, 0x7);
+		Result ret=svc_controlProcessMemory(processHandle, 0x00100000+(TOTALPAGES+i)*0x1000, CN_ALLOCPAGES_ADR+0x1000*i, 0x1000, MEMOP_MAP, 0x7);
 		if(ret)*(u32*)NULL=ret;
 	}
 
@@ -159,7 +167,7 @@ void HB_Load3dsx(u32* cmdbuf)
 	Result ret;
 	ret=svc_mapProcessMemory(targetProcessHandle, 0x00100000, 0x02000000);
 	if(!ret) {
-		memset((void*)CN_3DSX_LOADADR, 0x00, (0x00100000+CN_NEWTOTALPAGES*0x1000)-CN_3DSX_LOADADR);
+		memset((void*)CN_3DSX_LOADADR, 0x00, (0x00100000+NEWTOTALPAGES*0x1000)-CN_3DSX_LOADADR);
 		ret=Load3DSX(fileHandle, targetProcessHandle, (void*)baseAddr, heapAddr);
 		svc_unmapProcessMemory(targetProcessHandle, 0x00100000, 0x02000000);
 	}
