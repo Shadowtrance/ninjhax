@@ -228,7 +228,7 @@ int main_initial(void)
 	rohandle = *(Handle*)SN_ROHANDLE_ADR;
 	_RO_Shutdown(rohandle, 0xFFFF8001, *(u32*)SN_CRS_MAP_ADR);
 	drawTitleScreen("running exploit... 010%");
-	// load next stage
+	// load next stage (ROP to rohax)
 	memcpy((u8*)SPIDER_THREAD0ROP_VADR, spider_thread0_rop_bin, spider_thread0_rop_bin_len);
 	drawTitleScreen("running exploit... 020%");
 	asm volatile ("mov sp, %0\t\n"
@@ -245,7 +245,7 @@ int main_secondary(Handle hbHandle)
 
 	_GSPGPU_AcquireRight(*gspHandle, 0x0); //get in line for gsp rights
 
-	drawTitleScreen("running exploit... 070%");
+	drawTitleScreen("running exploit... 050%");
 	_HB_FlushInvalidateCache(hbHandle);
 	Handle fsHandle;
 	ret=_HB_GetHandle(hbHandle, 0x0, &fsHandle);
@@ -255,13 +255,68 @@ int main_secondary(Handle hbHandle)
 	//allocate some memory for homebrew .text/rodata/data/bss... (will be remapped)
 	u32 out; ret=svc_controlMemory(&out, SN_ALLOCPAGES_ADR, 0x00000000, SN_ADDPAGES*0x1000, MEMOP_COMMIT, 0x3);
 
-	drawTitleScreen("running exploit... 080%");
+	drawTitleScreen("running exploit... 060%");
 
 	if(_HB_SetupBootloader(hbHandle, SN_ALLOCPAGES_ADR))*((u32*)NULL)=0xBABE0061;
 
+	drawTitleScreen("running exploit... 070%");
+
+	// cleanup
+	{
+		// cleanup by forcing all threads to close
+		unsigned int addr = 0x00100000;
+		for (addr = 0x00100000; addr < 0x00100000+SPIDER_TEXT_LENGTH; addr += 12)
+		{
+			unsigned int instr = *(unsigned int *)addr;
+			if ((instr & 0xE0000000) == 0xE0000000)
+			{
+				*((unsigned int *)addr + 0) = 0xe3e00000;
+				*((unsigned int *)addr + 1) = 0xe3e01000;
+				*((unsigned int *)addr + 2) = 0xef00000a;
+			}
+		}
+
+		s32 out;
+		// wake thread1
+		svc_releaseSemaphore(&out, *(Handle*)SPIDER_PROCSEMAPHORE_ADR, 1);
+		// wake thread2
+		svc_signalEvent(*(Handle*)(SPIDER_APTHANDLES_ADR+8));
+		// wake thread3 and thread4
+		svc_arbitrateAddress(*(Handle*)SPIDER_ADDRESSARBITER_ADR, SPIDER_ARBADDRESS_1, 0, -1, 0LL);
+		// wake thread7
+		svc_arbitrateAddress(*(Handle*)SPIDER_ADDRESSARBITER_ADR, SPIDER_ARBADDRESS_2, 0, -1, 0LL);
+		// wake thread8
+		svc_arbitrateAddress(*(Handle*)SPIDER_ADDRESSARBITER_ADR, SPIDER_ARBADDRESS_3, 0, -1, 0LL);
+		// wake thread10
+		svc_arbitrateAddress(*(Handle*)SPIDER_ADDRESSARBITER_ADR, SPIDER_ARBADDRESS_4, 0, -1, 0LL);
+		// sleep for a second
+		svc_sleepThread(0x3b9aca00LL);
+		drawTitleScreen("running exploit... 075%");
+
+		//unmap GSP and HID shared mem
+		svc_unmapMemoryBlock(*((Handle*)SPIDER_HIDMEMHANDLE_ADR), 0x10000000);
+		svc_unmapMemoryBlock(*((Handle*)SPIDER_GSPMEMHANDLE_ADR), 0x10002000);
+		//close all handles in data and .bss sections
+		int i;
+		for(i=0;i<(SN_DATABSS_SIZE)/4;i++)
+		{
+			Handle val=((Handle*)(SN_DATABSS_START))[i];
+			if(val && (val&0x7FFF)<0x30 && val!=*gspHandle && val!=hbHandle)svc_closeHandle(val);
+		}
+		// close handles in the heap
+		svc_closeHandle(*(Handle*)SN_FREE_HANDLE_1);
+		svc_closeHandle(*(Handle*)SN_FREE_HANDLE_2);
+		svc_closeHandle(*(Handle*)SN_FREE_HANDLE_3);
+
+		drawTitleScreen("running exploit... 080%");
+
+		//free GSP heap and regular heap
+		//svc_controlMemory(&out, SPIDER_GSPHEAPSTART, 0x00000000, SPIDER_GSPHEAPSIZE, MEMOP_FREE, 0x0);
+	}
+
 	drawTitleScreen("running exploit... 090%");
 	
-	memcpy((u8*)0x00100000, cn_bootloader_bin, cn_bootloader_bin_len);
+	memcpy((u8*)CN_BOOTLOADER_LOC, cn_bootloader_bin, cn_bootloader_bin_len);
 	
 	drawTitleScreen("running exploit... 095%");
 
@@ -288,6 +343,7 @@ int main_secondary(Handle hbHandle)
 	setArgs(NULL, 0);
 
 	drawTitleScreen("Loading boot.3dsx...");
+	// TODO: Free temp fb heap
 	callBootloader(hbHandle, fileHandle);
 
 	while(1);
