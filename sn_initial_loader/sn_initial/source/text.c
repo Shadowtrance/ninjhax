@@ -171,6 +171,23 @@ int _vsprintf (char *str, const char *fmt, va_list ap)
     return 0;
 }
 
+/********************************************//**
+ *  \brief Simple @c sprintf
+ *  
+ *  Only supports %c, %s, %u, %x, %X with 
+ *  optional zero padding.
+ *  Always returns zero.
+ ***********************************************/
+int _sprintf (char *str, const char *format, ...)
+{
+    va_list arg;
+
+    va_start (arg, format);
+    _vsprintf (str, format, arg);
+    va_end (arg);
+    return 0;
+}
+
 void drawCharacter(u8* fb, char c, u16 x, u16 y)
 {
 	if(c<32)return;
@@ -204,23 +221,4 @@ void drawString(u8* fb, char* str, u16 x, u16 y)
 		dx+=8;
 		if(str[k]=='\n'){dx=0;dy-=8;}
 	}
-}
-
-/********************************************//**
- *  \brief Simple @c sprintf
- *  
- *  Only supports %c, %s, %u, %x, %X with 
- *  optional zero padding. 1024 max length.
- *  Always returns zero.
- ***********************************************/
-void drawFormat(u8* fb, u16 x, u16 y, const char *format, ...)
-{
-    char buffer[1024];
-    va_list arg;
-
-    va_start (arg, format);
-    _vsprintf (buffer, format, arg);
-    va_end (arg);
-
-    drawString (fb, buffer, x, y);
 }
